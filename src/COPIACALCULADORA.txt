@@ -1,0 +1,264 @@
+
+
+import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URL;
+
+import javax.swing.*;
+
+public class Calculadora {
+
+	public static void main(String[] args) {
+		MarcoCalculadora marco=new MarcoCalculadora();
+		marco.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		marco.setVisible(true);
+	}
+}
+//-----------------CREANDO EL MARCO--------------------------------------
+class MarcoCalculadora extends JFrame{
+	public MarcoCalculadora() {
+		setTitle("Calculadora");
+		setBounds(500, 300, 300, 300); 
+		LaminaCalculadora milamina = new LaminaCalculadora();
+		add(milamina);
+		//pack(); Sustituye a setBounds dando tamaño y posicion por defecto segun el contenido.
+	}
+}
+
+//-----------------CREANDO LA LAMINA PRINCIPAL----------------------------------
+class LaminaCalculadora extends JPanel{
+	public LaminaCalculadora() {
+		//---------------IMPORTAR RECURSOS EXTERNOS----------------------
+		URL ImagenCopiar = LaminaCalculadora.class.getResource("copiar.gif");
+		URL ImagenPegar = LaminaCalculadora.class.getResource("pegar.gif");
+		URL ImagenBorrar = LaminaCalculadora.class.getResource("eliminar.png");
+		setLayout(new BorderLayout(5,5));
+		LSuperior = new JPanel();
+		LMenu = new JPanel();
+		LMenu.setLayout(new GridLayout(0, 6));
+		ImageIcon iconoCopiar = new ImageIcon(ImagenCopiar);
+		ImageIcon iconoPegar = new ImageIcon(ImagenPegar);
+		Copiar = new JButton(iconoCopiar);
+		Pegar = new JButton(iconoPegar);
+		Pegar.addActionListener( new AccionPegar ());
+		Copiar.addActionListener(new AccionCopiar());
+		Copiar.setFont(fuente2);
+		LSuperior.setLayout(new GridLayout(2,0));
+		pantalla = new JLabel("0");
+		pantalla.setPreferredSize(new Dimension(250,40));
+		pantalla.setFont(fuente);
+		pantalla.setForeground(Color.BLUE);
+		pantalla.setHorizontalAlignment(SwingConstants.RIGHT);
+		pantalla.setVerticalAlignment(SwingConstants.BOTTOM);
+		LMenu.add(Copiar);
+		LMenu.add(Pegar);
+		add(LSuperior, BorderLayout.NORTH);
+		LSuperior.add(LMenu);
+		LSuperior.add (pantalla);
+		pantalla.setBackground(Color.WHITE);
+		laminaTeclado = new JPanel();
+		laminaTeclado.setLayout(new GridLayout(6,4,3,3));
+		//-------------------ACCIONES------------------------------
+		ActionListener inserta = new InsertaNumero();
+		ActionListener orden = new Operaciones();
+		//--------------------CREAR BOTONES TECLADO---------------------
+		ponerBoton("%", orden);
+		ImageIcon iconoborrar = new ImageIcon(ImagenBorrar);
+		ponerBoton("√", orden);
+		ponerBoton("x²", orden);
+		ponerBoton("1/x", orden);
+		ponerBoton("CE", orden);
+		ponerBoton("C", orden);
+		borrar = new JButton(iconoborrar);
+		borrar.setAlignmentY(CENTER_ALIGNMENT);
+		borrar.addActionListener(orden);
+		laminaTeclado.add(borrar);
+		ponerBoton("/",orden);
+		ponerBoton("7",inserta);
+		ponerBoton("8",inserta);
+		ponerBoton("9",inserta);
+		ponerBoton("x",orden);
+		ponerBoton("4",inserta);
+		ponerBoton("5",inserta);
+		ponerBoton("6",inserta);
+		ponerBoton("-",orden);
+		ponerBoton("1",inserta);
+		ponerBoton("2",inserta);
+		ponerBoton("3",inserta);
+		ponerBoton("+",orden);
+		ponerBoton("±",orden);
+		ponerBoton("0",inserta);
+		ponerBoton(".",inserta);
+		ponerBoton("=",orden);
+		add(laminaTeclado, BorderLayout.CENTER);
+	}
+	//--------------BOTONES-----------------------------
+	
+	private void ponerBoton(String rotulo, ActionListener oyente) {
+		JButton boton = new JButton(rotulo);
+		boton.setFont(fuente2);
+		boton.setAlignmentY(CENTER_ALIGNMENT);
+		boton.addActionListener(oyente);
+		laminaTeclado.add(boton);
+	}
+	
+	//--------------------INSERTAR NUMEROS EN PANTALLA-------------------------
+	private class InsertaNumero implements ActionListener {
+
+		public void actionPerformed(ActionEvent e) {
+			String entrada = e.getActionCommand();
+			if (pantalla.getText().equals("0") && entrada.equals(".")) {
+				pantalla.setText(pantalla.getText() + entrada);
+			}
+			else if (pantalla.getText().equals("0") || condicion ) {
+				pantalla.setText("");
+				pantalla.setText(pantalla.getText() + entrada);
+			}
+			else {
+				pantalla.setText(pantalla.getText() + entrada);
+			}
+			condicion = false;
+		}
+	}
+	//-----------------ACCIONES--------------------------------
+	private class Operaciones implements ActionListener {
+
+		public void actionPerformed(ActionEvent e) {
+			operacion = e.getActionCommand();
+			BORRAR = (JButton)e.getSource();
+			calcular(Double.parseDouble(pantalla.getText()));
+		}	
+	}
+	
+	public void  calcular(Double x) {
+		if ( operacion.equals("CE")) {
+			pantalla.setText("0");
+		}
+		else if (operacion.equals("C")) {
+			resultado = 0;
+			pantalla.setText("0");
+		}
+		
+		else if (operacion.equals("±")) {
+			resultado = x * -1;
+			pantalla.setText(""+ QuitarCeros(Double.toString(resultado)));
+			//pantalla.setText(""+resultado);
+		}
+		else if (operacion.equals("√")) {
+			resultado = Math.sqrt(x);
+			pantalla.setText(""+ QuitarCeros(Double.toString(resultado)));
+		}
+		else if (operacion.equals("%")) {
+				resultado = x/100;
+				pantalla.setText(""+ QuitarCeros(Double.toString(resultado)));
+		}
+		else if (operacion.equals("x²")) {
+			resultado = x*x;
+			pantalla.setText(""+ QuitarCeros(Double.toString(resultado)));
+		}
+		else if (operacion.equals("1/x")) {
+			resultado = 1/x;
+			pantalla.setText(""+ QuitarCeros(Double.toString(resultado)));
+		}
+		else if (UltimaOperacion.equals("")) {
+			UltimaOperacion = operacion;
+			resultado = x;
+		}
+		else if (UltimaOperacion.equals("+")) {
+			resultado += x;
+			pantalla.setText(""+ QuitarCeros(Double.toString(resultado)));
+			UltimaOperacion = operacion;
+		}
+		else if (UltimaOperacion.equals("-")) {
+			resultado -= x;
+			pantalla.setText(""+ QuitarCeros(Double.toString(resultado)));
+			UltimaOperacion = operacion;
+		}
+		else if (UltimaOperacion.equals("x")) {
+			resultado *= x;
+			pantalla.setText(""+ QuitarCeros(Double.toString(resultado)));
+			UltimaOperacion = operacion;
+		}
+		else if (UltimaOperacion.equals("/")) {
+			resultado /= x;
+			pantalla.setText(""+ QuitarCeros(Double.toString(resultado)));
+			UltimaOperacion = operacion;
+		}
+		if (operacion.equals("=")) {
+			UltimaOperacion = "";
+		} 
+		condicion = true;
+		if (BORRAR == borrar) {
+			String textoNuevo = pantalla.getText();
+			textoNuevo = textoNuevo.substring(0, textoNuevo.length() -1);
+			pantalla.setText(textoNuevo);
+			condicion = false;
+		}
+	}
+	//----------------------ELIMINAR CEROS SOBRANTES--------------------
+	private String QuitarCeros(String numero) {
+		for (int i = numero.length()-1 ; i >=0 ;i--) {
+			if (numero.charAt(i) == '.') {
+				for (int z = numero.length()-1 ; z >=0 ;z--) {
+					if (numero.charAt(z) == '0') {
+						numero = numero.substring(0, numero.length()-1);
+					}else if (!(numero.charAt(z) == '0') && !(numero.charAt(z) == '.')) {
+						z = -1; i = -1;
+					}else if (numero.charAt(z) == '.') {
+						numero = numero.substring(0, numero.length()-1);
+						z = -1; i = -1;
+					}
+				}
+			}
+		}
+		return numero;
+		
+	}
+	//----------------------------ACCION COPIAR------------------------------
+	private class AccionCopiar implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(pantalla.getText()), null);
+		}
+		
+	}
+	
+	//----------------------------ACCION PEGAR------------------------------
+		private class AccionPegar implements ActionListener {
+			public void actionPerformed(ActionEvent e) {
+				Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+			    try {
+					String copiado = (String) t.getTransferData(DataFlavor.stringFlavor);
+					try {
+						Double.parseDouble(copiado);
+						pantalla.setText(copiado);
+					} catch (NumberFormatException exception) {}
+				} catch (UnsupportedFlavorException e1) {
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+			
+		}
+//------------------------DECLARACION DE VARIABLES---------------------------
+	private JPanel laminaTeclado;
+	private JPanel LSuperior;
+	private JPanel LMenu;
+	private JLabel pantalla;
+	private JButton borrar;
+	private double resultado = 0; 
+	private String UltimaOperacion = "";
+	private boolean condicion = true;
+	private String operacion;
+	private JButton BORRAR;
+	private JButton Copiar, Pegar;
+	Font fuente = new Font("Calibri", 1, 30);
+	Font fuente2 = new Font("Calibri", 1, 15);
+}
+
